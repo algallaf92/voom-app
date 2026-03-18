@@ -1,0 +1,11 @@
+name: deepar_flutter
+description: A stub replacement for deepar_flutter for CI builds without the proprietary SDK.
+version: 0.0.1
+
+environment:
+  sdk: ^3.0.0
+  flutter: ">=3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter

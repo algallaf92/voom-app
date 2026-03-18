@@ -24,6 +24,16 @@ jobs:
           flutter-version: '3.27.0'
           cache: true
 
+      # Inject stub for deepar_flutter so the build passes without
+      # the proprietary DeepAR iOS SDK (deepar.framework).
+      - name: Inject deepar_flutter stub (CI workaround)
+        run: |
+          # Add dependency_overrides pointing to the local stub
+          echo "" >> pubspec.yaml
+          echo "dependency_overrides:" >> pubspec.yaml
+          echo "  deepar_flutter:" >> pubspec.yaml
+          echo "    path: stubs/deepar_flutter" >> pubspec.yaml
+
       - name: Install Flutter dependencies
         run: flutter pub get
 
@@ -71,6 +81,16 @@ jobs:
           channel: 'stable'
           flutter-version: '3.27.0'
           cache: true
+
+      # Inject stub for deepar_flutter so the Gradle build doesn't fail
+      # even though deepar.aar is committed — the stub removes the plugin
+      # Flutter registration that requires the native .aar at link time.
+      - name: Inject deepar_flutter stub (CI workaround)
+        run: |
+          echo "" >> pubspec.yaml
+          echo "dependency_overrides:" >> pubspec.yaml
+          echo "  deepar_flutter:" >> pubspec.yaml
+          echo "    path: stubs/deepar_flutter" >> pubspec.yaml
 
       - name: Install Flutter dependencies
         run: flutter pub get
