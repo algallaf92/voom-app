@@ -22,7 +22,6 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
 
   bool _isMuted = false;
   bool _isVideoOff = false;
-  final bool _isFilterOn = false;
   bool _isInitialized = false;
   bool _premiumFiltersUnlocked = false;
   final bool _remoteCameraOn = true; // Track remote user's camera status
@@ -365,7 +364,6 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
 
   void _applyFilter(String filter) async {
     final monetizationService = MonetizationProvider.of(context);
-    final allFilters = _filterService.getFilters();
     final basicFilters = ['None', 'Beauty', 'Smooth'];
     final isPremium = !basicFilters.contains(filter);
 
