@@ -22,17 +22,33 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.27.0'
-          cache: true
 
-      # Inject stub for deepar_flutter so the build passes without
-      # the proprietary DeepAR iOS SDK (deepar.framework).
-      - name: Inject deepar_flutter stub (CI workaround)
+      # Replace deepar_flutter with our local no-op stub so the build
+      # doesn't need the proprietary DeepAR iOS SDK (deepar.framework).
+      - name: Patch pubspec.yaml – use deepar_flutter stub
         run: |
-          # Add dependency_overrides pointing to the local stub
-          echo "" >> pubspec.yaml
-          echo "dependency_overrides:" >> pubspec.yaml
-          echo "  deepar_flutter:" >> pubspec.yaml
-          echo "    path: stubs/deepar_flutter" >> pubspec.yaml
+          python3 - <<'EOF'
+          import re
+
+          with open("pubspec.yaml", "r") as f:
+              content = f.read()
+
+          # Remove existing deepar_flutter line from dependencies
+          content = re.sub(r'\n\s*deepar_flutter:.*', '', content)
+
+          # Append dependency_overrides block at end
+          override_block = """
+dependency_overrides:
+  deepar_flutter:
+    path: stubs/deepar_flutter
+"""
+          content += override_block
+
+          with open("pubspec.yaml", "w") as f:
+              f.write(content)
+
+          print("pubspec.yaml patched successfully")
+          EOF
 
       - name: Install Flutter dependencies
         run: flutter pub get
@@ -80,17 +96,32 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.27.0'
-          cache: true
 
-      # Inject stub for deepar_flutter so the Gradle build doesn't fail
-      # even though deepar.aar is committed — the stub removes the plugin
-      # Flutter registration that requires the native .aar at link time.
-      - name: Inject deepar_flutter stub (CI workaround)
+      # Replace deepar_flutter with our local no-op stub
+      - name: Patch pubspec.yaml – use deepar_flutter stub
         run: |
-          echo "" >> pubspec.yaml
-          echo "dependency_overrides:" >> pubspec.yaml
-          echo "  deepar_flutter:" >> pubspec.yaml
-          echo "    path: stubs/deepar_flutter" >> pubspec.yaml
+          python3 - <<'EOF'
+          import re
+
+          with open("pubspec.yaml", "r") as f:
+              content = f.read()
+
+          # Remove existing deepar_flutter line from dependencies
+          content = re.sub(r'\n\s*deepar_flutter:.*', '', content)
+
+          # Append dependency_overrides block at end
+          override_block = """
+dependency_overrides:
+  deepar_flutter:
+    path: stubs/deepar_flutter
+"""
+          content += override_block
+
+          with open("pubspec.yaml", "w") as f:
+              f.write(content)
+
+          print("pubspec.yaml patched successfully")
+          EOF
 
       - name: Install Flutter dependencies
         run: flutter pub get
