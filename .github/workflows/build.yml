@@ -1,0 +1,56 @@
+name: Build Voom App (iOS & Android)
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  # Allows you to trigger the build manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Compile on Apple Silicon
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java for Android Build
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.27.0'
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # NOTE: For this Android build to pass on GitHub, you MUST commit the `deepar.aar` 
+      # file inside your github repository at android/app/libs/deepar.aar!
+      - name: Build Android APK
+        run: flutter build apk --release
+
+      # NOTE: For this iOS build to pass on GitHub, you MUST commit the `deepar.framework` 
+      # from the iOS SDK download into your ios/ folder as instructed by DeepAR.
+      - name: Build iOS Application (No Codesign)
+        run: flutter build ios --release --no-codesign
+
+      - name: Upload Android APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      - name: Upload iOS Extracted App
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-app-payload
+          path: build/ios/iphoneos/Runner.app
+          # NOTE: Because it is unsigned (--no-codesign), this generates a Runner.app.
+          # You can zip this folder, rename it to .ipa, and use signing services 
+          # like AltStore or Signulous to install it onto your iPhone without a Mac!

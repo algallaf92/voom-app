@@ -1,0 +1,24 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Build APK",
+			"type": "shell",
+			"command": "flutter",
+			"args": [
+				"build",
+				"apk"
+			],
+			"group": "build"
+		},
+		{
+			"label": "Run Voom App",
+			"type": "shell",
+			"command": ".\\flutter\\bin\\flutter.bat",
+			"args": [
+				"run"
+			],
+			"group": "build"
+		}
+	]
+}

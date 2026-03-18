@@ -1,0 +1,10 @@
+{
+  // VS Code Git optimizations for large repos
+  "git.autorefresh": false,
+  "git.confirmSync": false,
+  "git.countBadge": "off",
+  "git.decorations.enabled": false,
+  "git.enabled": true,
+  "git.untrackedChanges": "separate",
+  "git.ignoreLimitWarning": true
+}
