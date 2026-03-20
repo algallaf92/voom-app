@@ -90,7 +90,9 @@ class FilterService {
       ),
       ResolutionPreset.high, // 1280x720 for good quality
       enableAudio: false, // Audio handled by Agora
-      imageFormatGroup: ImageFormatGroup.yuv420, // Efficient format
+      imageFormatGroup: Platform.isIOS
+          ? ImageFormatGroup.bgra8888 // Required on iOS; yuv420 is not supported for streaming
+          : ImageFormatGroup.yuv420, // Efficient format on Android
     );
 
     await _cameraController!.initialize();

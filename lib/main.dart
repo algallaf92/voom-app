@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'screens/home_screen.dart';
 import 'widgets/buttons.dart';
 import 'constants.dart';
@@ -12,7 +13,9 @@ import 'screens/purchase_history_screen.dart';
 import 'screens/coin_store_screen.dart';
 import 'screens/video_chat_mock_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const VoomApp());
 }
 

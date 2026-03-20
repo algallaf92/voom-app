@@ -1,4 +1,5 @@
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
@@ -121,12 +122,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     onTap: _handleGoogleSignIn,
                     icon: Icons.g_mobiledata,
                   ),
-                  const SizedBox(height: 16),
-                  _buildNeonButton(
-                    text: 'Sign in with Apple',
-                    onTap: _handleAppleSignIn,
-                    icon: Icons.apple,
-                  ),
+                  if (Platform.isIOS || Platform.isMacOS) ...[
+                    const SizedBox(height: 16),
+                    _buildNeonButton(
+                      text: 'Sign in with Apple',
+                      onTap: _handleAppleSignIn,
+                      icon: Icons.apple,
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   _buildNeonButton(
                     text: 'Continue as Guest',
