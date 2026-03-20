@@ -78,8 +78,9 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
    - Open Xcode (`open ios/Runner.xcworkspace`), select the **Runner** target, go to **Build Phases → Copy Bundle Resources**, and confirm `GoogleService-Info.plist` is listed (it was added automatically; if not, drag it in).
 
 4. Set up Agora:
-   - Create an Agora account at https://console.agora.io/
-   - Get your App ID and add it to `lib/services/agora_service.dart` (replace the placeholder)
+   - The Agora App ID is already configured in `lib/services/agora_service.dart`.
+   - If you need to use a different Agora project, create an account at https://console.agora.io/, get your App ID, and replace the value of `appId` in that file.
+   - **Security note:** For production deployments or public repositories, move the App ID out of source code and supply it via environment variables or a secrets manager.
 
 5. Set up DeepAR:
    - Get DeepAR license at https://developer.deepar.ai/
@@ -167,7 +168,7 @@ The app is optimized for smooth 24-30 FPS video streaming and filter processing:
 
 ## Next Steps for Full MVP
 
-- Add real Agora App ID and DeepAR license keys
+- Add real DeepAR license keys
 - Implement Firebase Firestore matchmaking
 - **Set up in-app purchase products in App Store Connect and Google Play Console**
 - **Configure product IDs in the code**
