@@ -62,7 +62,7 @@ class FilterService {
     // Set license key (replace with your actual key)
     await _deepArController!.initialize(
       androidLicenseKey: '1ca2d9c26dfb4b521f4b3b602700cd8715289719731e4e1eaafc95510c2aac1e41072fa545045194',
-      iosLicenseKey: 'YOUR_IOS_LICENSE_KEY',
+      iosLicenseKey: '6cf1e70ff937b565f591d16431599378b304e0d85a3558ce790e2cddeab613b7d3dc127785a00857',
     );
 
     // Configure for performance
