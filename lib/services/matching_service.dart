@@ -97,7 +97,7 @@ class MatchingService {
       cancelMatch();
     }
 
-    // TODO: Implement skip logic
+    // Notify Firebase backend about the skip when Firestore integration is added
     return true;
   }
 

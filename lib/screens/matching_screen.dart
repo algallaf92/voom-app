@@ -233,8 +233,48 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Implement the actual UI. This is a placeholder to fix the build error.
-    return const SizedBox.shrink();
+    final matchingService = MatchingProvider.of(context);
+    final monetizationService = MonetizationProvider.of(context);
+    final state = matchingService.currentState;
+
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: textColor),
+          onPressed: () {
+            matchingService.cancelMatch();
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Finding a Match',
+          style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            _buildAnimatedIcon(state),
+            const SizedBox(height: 32),
+            _buildStatusText(state),
+            const SizedBox(height: 12),
+            _buildTimerText(state),
+            const Spacer(),
+            _buildPremiumFeatures(monetizationService),
+            const SizedBox(height: 32),
+            _buildActionButton(state),
+            const SizedBox(height: 48),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildAnimatedIcon(MatchingState state) {

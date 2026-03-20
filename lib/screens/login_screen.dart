@@ -32,7 +32,9 @@ class _LoginScreenState extends State<LoginScreen> {
     });
     try {
       await authAction();
-      // TODO: Navigate to home/profile screen
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/');
+      }
     } catch (e) {
       if (mounted) {
         setState(() {

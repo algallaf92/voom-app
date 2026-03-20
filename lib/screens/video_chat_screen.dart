@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../main.dart';
 import '../services/safety_service.dart';
 import '../widgets/buttons.dart';
@@ -26,6 +27,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   bool _premiumFiltersUnlocked = false;
   final bool _remoteCameraOn = true; // Track remote user's camera status
   final String _remoteUserId = '';
+  final String _sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
 
   String _currentFilter = 'None';
   Timer? _safetyTimer;
@@ -535,6 +537,9 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   }
 
   void _reportUser() async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) return; // Require authentication
+
     final safetyService = SafetyProvider.of(context);
 
     final reason = await showDialog<String>(
@@ -553,11 +558,11 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
       if (description != null && mounted) {
         try {
           await safetyService.reportUser(
-            reporterId: 'current_user_id', // TODO: Get from auth service
+            reporterId: currentUid,
             reportedUserId: _remoteUserId,
             reason: reason,
             description: description,
-            chatSessionId: 'current_session_id', // TODO: Get from matching service
+            chatSessionId: _sessionId,
           );
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -579,6 +584,9 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   }
 
   void _blockUser() async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) return; // Require authentication
+
     final safetyService = SafetyProvider.of(context);
 
     final confirmed = await showDialog<bool>(
@@ -615,7 +623,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
     if (confirmed == true) {
       try {
         await safetyService.blockUser(
-          blockerId: 'current_user_id', // TODO: Get from auth service
+          blockerId: currentUid,
           blockedUserId: _remoteUserId,
           reason: 'User blocked during chat',
         );

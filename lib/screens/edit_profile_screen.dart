@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String username;
@@ -171,20 +174,40 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _changeProfilePicture() {
-    // TODO: Implement image picker and upload logic
+  void _changeProfilePicture() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    if (picked != null) {
+      setState(() {
+        profilePictureUrl = picked.path;
+      });
+    }
   }
 
-  void _saveProfile() {
+  void _saveProfile() async {
     setState(() => isSaving = true);
-    // TODO: Save changes to Firestore
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      // Only save fields that have cloud-accessible values.
+      // profilePictureUrl is skipped here until Firebase Storage upload is implemented.
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'username': usernameController.text.trim(),
+        'gender': genderController.text.trim(),
+        'region': regionController.text.trim(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+
     widget.onSave(
       usernameController.text,
       genderController.text,
       regionController.text,
       profilePictureUrl ?? '',
     );
-    setState(() => isSaving = false);
-    Navigator.pop(context);
+    if (mounted) {
+      setState(() => isSaving = false);
+      Navigator.pop(context);
+    }
   }
 }
