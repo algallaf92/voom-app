@@ -55,9 +55,19 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
 
 3. Set up Firebase:
    - Create a Firebase project at https://console.firebase.google.com/
-   - Enable Firestore
-   - Add your Android app and download `google-services.json`
-   - Place `google-services.json` in `android/app/`
+   - Enable Firestore and Authentication in the Firebase Console.
+
+   **Android:**
+   - In the Firebase Console go to **Project Settings → Your apps → Android app**.
+   - Register the app with package name `com.example.voom` (or your bundle ID).
+   - Download `google-services.json` and place it in `android/app/`.
+
+   **iOS:**
+   - In the Firebase Console go to **Project Settings → Your apps → iOS+ app**.
+   - Register the app with bundle ID `com.example.voom` (must match `PRODUCT_BUNDLE_IDENTIFIER` in `ios/Runner.xcodeproj/project.pbxproj`).
+   - Click **Download GoogleService-Info.plist**.
+   - Replace the placeholder file at `ios/Runner/GoogleService-Info.plist` with the downloaded file.
+   - Open Xcode (`open ios/Runner.xcworkspace`), select the **Runner** target, go to **Build Phases → Copy Bundle Resources**, and confirm `GoogleService-Info.plist` is listed (it was added automatically; if not, drag it in).
 
 4. Set up Agora:
    - Create an Agora account at https://console.agora.io/

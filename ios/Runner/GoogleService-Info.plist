@@ -1,9 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
-  IMPORTANT: This is a placeholder file. Replace it with the real
-  GoogleService-Info.plist downloaded from the Firebase Console:
-    https://console.firebase.google.com/ → your project → iOS app → download config file.
+  IMPORTANT: This is a placeholder file.
+  Replace it with the real GoogleService-Info.plist from Firebase Console:
+
+  Step 1 – Open the Firebase Console:
+    https://console.firebase.google.com/ → select your project
+
+  Step 2 – Go to Project Settings:
+    Click the ⚙ gear icon next to "Project Overview" → Project settings
+
+  Step 3 – Find your iOS app:
+    Scroll down to "Your apps". If no iOS app exists yet, click "Add app" → iOS+
+    and register with bundle ID: com.example.voom
+    (must match PRODUCT_BUNDLE_IDENTIFIER in ios/Runner.xcodeproj/project.pbxproj)
+
+  Step 4 – Download the config file:
+    Click "GoogleService-Info.plist" to download it.
+
+  Step 5 – Replace this file:
+    Copy the downloaded file to ios/Runner/GoogleService-Info.plist
+    (overwrite this placeholder).
+
+  Step 6 – Verify in Xcode (optional):
+    Open ios/Runner.xcworkspace in Xcode.
+    In the Project Navigator, confirm GoogleService-Info.plist appears under the Runner target.
+    If it is missing, drag the file into the Runner group and make sure
+    "Add to targets: Runner" is checked.
 
   Without a valid GoogleService-Info.plist the app will crash on launch on iOS
   because firebase_core cannot find the Firebase configuration.
