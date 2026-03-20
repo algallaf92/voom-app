@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Template for ios/Runner/GoogleService-Info.plist
+  ─────────────────────────────────────────────────
+  This file is safe to commit because it contains no real credentials.
+  The REAL GoogleService-Info.plist must NOT be committed; it is listed
+  in .gitignore to prevent accidental exposure of API keys.
+
+  How to generate the real file
+  ──────────────────────────────
+  1. Open https://console.firebase.google.com/ and select your project.
+  2. Go to ⚙ Project Settings → Your apps → iOS+ app.
+     If no iOS app exists yet, click "Add app → iOS+" and register with
+     bundle ID: com.example.voom
+     (must match PRODUCT_BUNDLE_IDENTIFIER in ios/Runner.xcodeproj/project.pbxproj)
+  3. Click "Download GoogleService-Info.plist".
+  4. Run:  bash scripts/setup_firebase.sh
+     This copies the template structure and reminds you to replace values,
+     OR simply drop your downloaded file at ios/Runner/GoogleService-Info.plist.
+  5. Verify with:  bash scripts/validate_firebase.sh
+-->
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>REPLACE_WITH_YOUR_CLIENT_ID</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>REPLACE_WITH_YOUR_REVERSED_CLIENT_ID</string>
+	<key>API_KEY</key>
+	<string>REPLACE_WITH_YOUR_API_KEY</string>
+	<key>GCM_SENDER_ID</key>
+	<string>REPLACE_WITH_YOUR_GCM_SENDER_ID</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.example.voom</string>
+	<key>PROJECT_ID</key>
+	<string>REPLACE_WITH_YOUR_PROJECT_ID</string>
+	<key>STORAGE_BUCKET</key>
+	<string>REPLACE_WITH_YOUR_STORAGE_BUCKET</string>
+	<key>IS_ADS_ENABLED</key>
+	<false/>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false/>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true/>
+	<key>IS_GCM_ENABLED</key>
+	<true/>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true/>
+	<key>GOOGLE_APP_ID</key>
+	<string>REPLACE_WITH_YOUR_GOOGLE_APP_ID</string>
+</dict>
+</plist>

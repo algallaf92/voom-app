@@ -65,6 +65,20 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
    - Create a Firebase project at https://console.firebase.google.com/
    - Enable Firestore and Authentication in the Firebase Console.
 
+   The credential files (`ios/Runner/GoogleService-Info.plist` and `android/app/google-services.json`) are listed in `.gitignore` and **must never be committed**. Use the provided scripts to set them up:
+
+   ```bash
+   # 1. Copy the templates to the correct locations
+   bash scripts/setup_firebase.sh
+
+   # 2. Download the real files from Firebase Console and overwrite:
+   #    • ios/Runner/GoogleService-Info.plist   (iOS)
+   #    • android/app/google-services.json      (Android)
+
+   # 3. Validate that the placeholder values have been replaced
+   bash scripts/validate_firebase.sh
+   ```
+
    **Android:**
    - In the Firebase Console go to **Project Settings → Your apps → Android app**.
    - Register the app with package name `com.example.voom` (or your bundle ID).
@@ -74,7 +88,7 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
    - In the Firebase Console go to **Project Settings → Your apps → iOS+ app**.
    - Register the app with bundle ID `com.example.voom` (must match `PRODUCT_BUNDLE_IDENTIFIER` in `ios/Runner.xcodeproj/project.pbxproj`).
    - Click **Download GoogleService-Info.plist**.
-   - Replace the placeholder file at `ios/Runner/GoogleService-Info.plist` with the downloaded file.
+   - Place the downloaded file at `ios/Runner/GoogleService-Info.plist`.
    - Open Xcode (`open ios/Runner.xcworkspace`), select the **Runner** target, go to **Build Phases → Copy Bundle Resources**, and confirm `GoogleService-Info.plist` is listed (it was added automatically; if not, drag it in).
 
 4. Set up Agora:
@@ -88,12 +102,30 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
 
 ## One-Time Manual Steps Required
 
-The following steps require actions outside the codebase and must be completed by the developer before building for iOS:
+The following steps require actions outside the codebase and must be completed by the developer before building:
 
-1. **Replace `ios/Runner/GoogleService-Info.plist`** (⚠️ not yet done)
-   - Open the [Firebase Console](https://console.firebase.google.com/) → your project → **Project Settings → Your apps → iOS app**.
-   - Download `GoogleService-Info.plist` and overwrite the placeholder file at `ios/Runner/GoogleService-Info.plist`.
-   - In Xcode, confirm the file appears under **Runner → Build Phases → Copy Bundle Resources**.
+1. **Set up Firebase credentials** (iOS + Android)
+
+   The credential files are excluded from version control. Use the setup script to create them:
+
+   ```bash
+   bash scripts/setup_firebase.sh
+   ```
+
+   Then download the real files from the [Firebase Console](https://console.firebase.google.com/):
+
+   | Platform | Firebase Console path | Drop file at |
+   |---|---|---|
+   | iOS | Project Settings → Your apps → iOS+ app → Download | `ios/Runner/GoogleService-Info.plist` |
+   | Android | Project Settings → Your apps → Android app → Download | `android/app/google-services.json` |
+
+   After placing the real files, verify there are no stale placeholder values:
+
+   ```bash
+   bash scripts/validate_firebase.sh
+   ```
+
+   **iOS extra step:** Open `ios/Runner.xcworkspace` in Xcode, select the **Runner** target, go to **Build Phases → Copy Bundle Resources**, and confirm `GoogleService-Info.plist` is listed.
 
 2. **Install dependencies** (must be run once on each machine)
    ```bash
@@ -194,7 +226,7 @@ The app is optimized for smooth 24-30 FPS video streaming and filter processing:
 
 ## Next Steps for Full MVP
 
-- Replace `ios/Runner/GoogleService-Info.plist` with real file from Firebase Console (see One-Time Manual Steps above)
+- Replace `ios/Runner/GoogleService-Info.plist` and `android/app/google-services.json` with real files from Firebase Console (run `bash scripts/setup_firebase.sh` then `bash scripts/validate_firebase.sh`)
 - Configure Apple Developer Team and enable "Sign In with Apple" capability (see One-Time Manual Steps above)
 - Implement Firebase Firestore matchmaking
 - **Set up in-app purchase products in App Store Connect and Google Play Console**
