@@ -38,7 +38,8 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
 
 - Flutter SDK (3.41.4 or later)
 - Android Studio or VS Code with Flutter extension
-- Android device or emulator for testing
+- Android device or emulator for Android testing
+- **iOS only:** macOS with Xcode 15+, CocoaPods (`sudo gem install cocoapods`), and an iOS 13+ device or simulator
 
 ### Installation
 
@@ -52,6 +53,13 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
    ```bash
    flutter pub get
    ```
+
+   **iOS only** — install CocoaPods dependencies:
+   ```bash
+   cd ios && pod install && cd ..
+   ```
+   This generates `ios/Runner.xcworkspace`, which Xcode and `flutter run` use for iOS builds.
+   Always open `ios/Runner.xcworkspace` (not `Runner.xcodeproj`) in Xcode.
 
 3. Set up Firebase:
    - Create a Firebase project at https://console.firebase.google.com/
@@ -79,12 +87,23 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
 
 ### Running the App
 
-1. Connect an Android device or start an emulator.
+**Android:**
 
+1. Connect an Android device or start an emulator.
 2. Run the app:
    ```bash
    flutter run
    ```
+
+**iOS (macOS required):**
+
+1. Ensure you have completed `flutter pub get` and `cd ios && pod install`.
+2. Connect an iOS device or start a simulator.
+3. Run the app:
+   ```bash
+   flutter run
+   ```
+   Alternatively, open `ios/Runner.xcworkspace` in Xcode and click **Run**.
 
 ### Building APK
 
@@ -93,6 +112,14 @@ flutter build apk
 ```
 
 The APK will be generated in `build/app/outputs/flutter-apk/app-release.apk`
+
+### Building iOS IPA (macOS required)
+
+```bash
+flutter build ipa
+```
+
+The IPA will be generated in `build/ios/ipa/`.
 
 ## Project Structure
 
