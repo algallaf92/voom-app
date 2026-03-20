@@ -23,9 +23,6 @@ jobs:
           channel: 'stable'
           flutter-version: '3.27.0'
 
-      - name: Patch pubspec.yaml (use deepar stub for CI)
-        run: python3 scripts/patch_pubspec.py
-
       - name: Install Flutter dependencies
         run: flutter pub get
 
@@ -67,9 +64,6 @@ jobs:
         with:
           channel: 'stable'
           flutter-version: '3.27.0'
-
-      - name: Patch pubspec.yaml (use deepar stub for CI)
-        run: python3 scripts/patch_pubspec.py
 
       - name: Install Flutter dependencies
         run: flutter pub get
