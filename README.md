@@ -83,8 +83,33 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
    - **Security note:** For production deployments or public repositories, move the App ID out of source code and supply it via environment variables or a secrets manager.
 
 5. Set up DeepAR:
-   - Get DeepAR license at https://developer.deepar.ai/
-   - Add API key to `lib/services/filter_service.dart` (replace the placeholder)
+   - The DeepAR Android and iOS license keys are already configured in `lib/services/filter_service.dart`.
+   - If you need to use your own DeepAR project, get a license at https://developer.deepar.ai/ and replace the `androidLicenseKey` and `iosLicenseKey` values in `_configureDeepAR()`.
+
+## One-Time Manual Steps Required
+
+The following steps require actions outside the codebase and must be completed by the developer before building for iOS:
+
+1. **Replace `ios/Runner/GoogleService-Info.plist`** (⚠️ not yet done)
+   - Open the [Firebase Console](https://console.firebase.google.com/) → your project → **Project Settings → Your apps → iOS app**.
+   - Download `GoogleService-Info.plist` and overwrite the placeholder file at `ios/Runner/GoogleService-Info.plist`.
+   - In Xcode, confirm the file appears under **Runner → Build Phases → Copy Bundle Resources**.
+
+2. **Install dependencies** (must be run once on each machine)
+   ```bash
+   flutter pub get
+   cd ios && pod install && cd ..
+   ```
+
+3. **Configure Apple Developer Team in Xcode** (⚠️ not yet done)
+   - Open `ios/Runner.xcworkspace` in Xcode.
+   - Select the **Runner** target → **Signing & Capabilities** tab.
+   - Choose your Apple Developer Team from the drop-down. This is required to sign the app for a real device.
+
+4. **Enable "Sign In with Apple" in the Apple Developer Portal** (⚠️ not yet done)
+   - Go to [developer.apple.com](https://developer.apple.com/) → **Certificates, Identifiers & Profiles → Identifiers**.
+   - Select the app's bundle ID and enable the **Sign In with Apple** capability.
+   - Regenerate and download the provisioning profile, then install it in Xcode.
 
 ### Running the App
 
@@ -150,6 +175,7 @@ The app is optimized for smooth 24-30 FPS video streaming and filter processing:
 - ✅ Modular code structure implemented
 - ✅ Agora SDK integration with performance optimizations
 - ✅ DeepAR filter processing with isolate-based background processing
+- ✅ DeepAR Android and iOS license keys configured
 - ✅ Performance monitoring and adaptive quality adjustments
 - ✅ Debug APK build completed
 - ✅ **Complete monetization system implemented:**
@@ -168,7 +194,8 @@ The app is optimized for smooth 24-30 FPS video streaming and filter processing:
 
 ## Next Steps for Full MVP
 
-- Add real DeepAR license keys
+- Replace `ios/Runner/GoogleService-Info.plist` with real file from Firebase Console (see One-Time Manual Steps above)
+- Configure Apple Developer Team and enable "Sign In with Apple" capability (see One-Time Manual Steps above)
 - Implement Firebase Firestore matchmaking
 - **Set up in-app purchase products in App Store Connect and Google Play Console**
 - **Configure product IDs in the code**
