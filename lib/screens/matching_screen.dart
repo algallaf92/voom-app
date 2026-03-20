@@ -6,6 +6,19 @@ import '../services/monetization_service.dart';
 import '../services/matching_service.dart';
 import '../main.dart';
 
+/// Holds all premium-feature data needed to render a single button.
+class _PremiumButtonData {
+  final bool isActive;
+  final String? timeRemaining;
+  final int? usesRemaining;
+
+  const _PremiumButtonData({
+    required this.isActive,
+    this.timeRemaining,
+    this.usesRemaining,
+  });
+}
+
 class MatchingScreen extends StatefulWidget {
   const MatchingScreen({super.key});
 
@@ -489,101 +502,97 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
     VoidCallback onTap, {
     bool isWide = false,
   }) {
-    return FutureBuilder<bool>(
-      future: monetizationService.isFeatureActive(featureId),
-      builder: (context, activeSnapshot) {
-        final isActive = activeSnapshot.data ?? false;
+    return FutureBuilder<_PremiumButtonData>(
+      future: Future.wait([
+        monetizationService.isFeatureActive(featureId),
+        monetizationService.getFeatureTimeRemaining(featureId),
+        monetizationService.getFeatureUsesRemaining(featureId),
+      ]).then((results) => _PremiumButtonData(
+            isActive: results[0] as bool,
+            timeRemaining: results[1] as String?,
+            usesRemaining: results[2] as int?,
+          )),
+      builder: (context, snapshot) {
+        final isActive = snapshot.data?.isActive ?? false;
+        final timeRemaining = snapshot.data?.timeRemaining;
+        final usesRemaining = snapshot.data?.usesRemaining;
 
-        return FutureBuilder<String?>(
-          future: monetizationService.getFeatureTimeRemaining(featureId),
-          builder: (context, timeSnapshot) {
-            final timeRemaining = timeSnapshot.data;
-
-            return FutureBuilder<int?>(
-              future: monetizationService.getFeatureUsesRemaining(featureId),
-              builder: (context, usesSnapshot) {
-                final usesRemaining = usesSnapshot.data;
-
-                return GestureDetector(
-                  onTap: isActive ? onTap : () => _unlockFeature(monetizationService, featureId, coinCost),
-                  child: Container(
-                    width: isWide ? 200 : 120,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isEnabled ? accentColor.withOpacity(0.2) : (isActive ? primaryColor.withOpacity(0.3) : primaryColor.withOpacity(0.1)),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isEnabled ? accentColor : (isActive ? primaryColor : secondaryColor),
-                        width: isActive ? 2 : 1,
+        return GestureDetector(
+          onTap: isActive ? onTap : () => _unlockFeature(monetizationService, featureId, coinCost),
+          child: Container(
+            width: isWide ? 200 : 120,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isEnabled ? accentColor.withOpacity(0.2) : (isActive ? primaryColor.withOpacity(0.3) : primaryColor.withOpacity(0.1)),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isEnabled ? accentColor : (isActive ? primaryColor : secondaryColor),
+                width: isActive ? 2 : 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  icon,
+                  color: isEnabled ? accentColor : (isActive ? primaryColor : secondaryColor),
+                  size: 24,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isEnabled ? accentColor : (isActive ? textColor : secondaryColor),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (isActive) ...[
+                  const SizedBox(height: 2),
+                  if (timeRemaining != null) ...[
+                    Text(
+                      timeRemaining,
+                      style: const TextStyle(
+                        color: accentColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          icon,
-                          color: isEnabled ? accentColor : (isActive ? primaryColor : secondaryColor),
-                          size: 24,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          label,
-                          style: TextStyle(
-                            color: isEnabled ? accentColor : (isActive ? textColor : secondaryColor),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        if (isActive) ...[
-                          const SizedBox(height: 2),
-                          if (timeRemaining != null) ...[
-                            Text(
-                              timeRemaining,
-                              style: const TextStyle(
-                                color: accentColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ] else if (usesRemaining != null) ...[
-                            Text(
-                              '$usesRemaining left',
-                              style: const TextStyle(
-                                color: accentColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ] else ...[
-                          const SizedBox(height: 2),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.monetization_on,
-                                color: accentColor,
-                                size: 12,
-                              ),
-                              const SizedBox(width: 2),
-                              Text(
-                                '$coinCost',
-                                style: const TextStyle(
-                                  color: accentColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
+                  ] else if (usesRemaining != null) ...[
+                    Text(
+                      '$usesRemaining left',
+                      style: const TextStyle(
+                        color: accentColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                  ],
+                ] else ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.monetization_on,
+                        color: accentColor,
+                        size: 12,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '$coinCost',
+                        style: const TextStyle(
+                          color: accentColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            );
-          },
+                ],
+              ],
+            ),
+          ),
         );
       },
     );

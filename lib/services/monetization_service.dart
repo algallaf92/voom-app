@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/monetization_models.dart';
@@ -10,6 +11,10 @@ class MonetizationService {
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
   late StreamSubscription<List<PurchaseDetails>> _subscription;
+
+  // In-memory caches to avoid repeated SharedPreferences I/O
+  CoinBalance? _cachedCoinBalance;
+  List<PremiumFeature>? _cachedPremiumFeatures;
 
   // Coin packages available for purchase
   final List<CoinPackage> coinPackages = [
@@ -120,7 +125,7 @@ class MonetizationService {
     _subscription = _inAppPurchase.purchaseStream.listen(
       _onPurchaseUpdate,
       onDone: () => _subscription.cancel(),
-      onError: (error) => print('Purchase stream error: $error'),
+      onError: (error) => debugPrint('Purchase stream error: $error'),
     );
   }
 
@@ -128,14 +133,14 @@ class MonetizationService {
     for (var purchaseDetails in purchaseDetailsList) {
       if (purchaseDetails.status == PurchaseStatus.pending) {
         // Handle pending purchase
-        print('Purchase pending: ${purchaseDetails.productID}');
+        debugPrint('Purchase pending: ${purchaseDetails.productID}');
       } else if (purchaseDetails.status == PurchaseStatus.purchased ||
                  purchaseDetails.status == PurchaseStatus.restored) {
         // Handle successful purchase
         _handleSuccessfulPurchase(purchaseDetails);
       } else if (purchaseDetails.status == PurchaseStatus.error) {
         // Handle purchase error
-        print('Purchase error: ${purchaseDetails.error}');
+        debugPrint('Purchase error: ${purchaseDetails.error}');
       }
 
       if (purchaseDetails.pendingCompletePurchase) {
@@ -164,11 +169,15 @@ class MonetizationService {
 
   // Coin balance management
   Future<CoinBalance> getCoinBalance() async {
+    // Return cached value if available to avoid repeated I/O
+    if (_cachedCoinBalance != null) return _cachedCoinBalance!;
+
     final prefs = await SharedPreferences.getInstance();
     final balanceJson = prefs.getString(_coinBalanceKey);
 
     if (balanceJson != null) {
-      return CoinBalance.fromJson(json.decode(balanceJson));
+      _cachedCoinBalance = CoinBalance.fromJson(json.decode(balanceJson));
+      return _cachedCoinBalance!;
     } else {
       // Initialize with 50 free coins for new users
       final initialBalance = CoinBalance(balance: 50, lastUpdated: DateTime.now());
@@ -178,6 +187,7 @@ class MonetizationService {
   }
 
   Future<void> _saveCoinBalance(CoinBalance balance) async {
+    _cachedCoinBalance = balance;
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_coinBalanceKey, json.encode(balance.toJson()));
     _coinBalanceController.add(balance);
@@ -207,20 +217,26 @@ class MonetizationService {
 
   // Premium features management
   Future<List<PremiumFeature>> getPremiumFeatures() async {
+    // Return cached value if available to avoid repeated I/O
+    if (_cachedPremiumFeatures != null) return _cachedPremiumFeatures!;
+
     final prefs = await SharedPreferences.getInstance();
     final featuresJson = prefs.getString(_premiumFeaturesKey);
 
     if (featuresJson != null) {
       final featuresList = json.decode(featuresJson) as List;
-      return featuresList.map((f) => PremiumFeature.fromJson(f)).toList();
+      _cachedPremiumFeatures =
+          featuresList.map((f) => PremiumFeature.fromJson(f)).toList();
+      return _cachedPremiumFeatures!;
     } else {
-      // Return default features
+      // Return default features and cache them
       await _savePremiumFeatures(premiumFeatures);
       return premiumFeatures;
     }
   }
 
   Future<void> _savePremiumFeatures(List<PremiumFeature> features) async {
+    _cachedPremiumFeatures = features;
     final prefs = await SharedPreferences.getInstance();
     final featuresJson = json.encode(features.map((f) => f.toJson()).toList());
     await prefs.setString(_premiumFeaturesKey, featuresJson);
@@ -410,5 +426,7 @@ class MonetizationService {
     _subscription.cancel();
     _coinBalanceController.close();
     _premiumFeaturesController.close();
+    _cachedCoinBalance = null;
+    _cachedPremiumFeatures = null;
   }
 }

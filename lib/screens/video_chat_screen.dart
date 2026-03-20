@@ -28,6 +28,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   final String _remoteUserId = '';
 
   String _currentFilter = 'None';
+  Timer? _safetyTimer;
 
   @override
   void initState() {
@@ -48,7 +49,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
 
   void _startSafetyMonitoring() {
     // Monitor for auto-skip conditions every 5 seconds
-    Timer.periodic(const Duration(seconds: 5), (timer) async {
+    _safetyTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       if (!mounted) {
         timer.cancel();
         return;
@@ -121,11 +122,11 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
 
   Future<void> _initializeServices() async {
     try {
-      // Initialize Agora
-      await _agoraService.initialize();
-
-      // Initialize filters
-      await _filterService.initialize();
+      // Initialize Agora and filters in parallel for faster startup
+      await Future.wait([
+        _agoraService.initialize(),
+        _filterService.initialize(),
+      ]);
 
       // Start camera stream for filters
       await _filterService.startCameraStream();
@@ -443,26 +444,40 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   }
 
   void _toggleMute() async {
+    final newMuted = !_isMuted;
     setState(() {
-      _isMuted = !_isMuted;
+      _isMuted = newMuted;
     });
 
     try {
-      await _agoraService.toggleAudio(!_isMuted);
+      await _agoraService.toggleAudio(!newMuted);
     } catch (e) {
       debugPrint('Failed to toggle audio: $e');
+      // Revert state on failure
+      if (mounted) {
+        setState(() {
+          _isMuted = !newMuted;
+        });
+      }
     }
   }
 
   void _toggleVideo() async {
+    final newVideoOff = !_isVideoOff;
     setState(() {
-      _isVideoOff = !_isVideoOff;
+      _isVideoOff = newVideoOff;
     });
 
     try {
-      await _agoraService.toggleVideo(!_isVideoOff);
+      await _agoraService.toggleVideo(!newVideoOff);
     } catch (e) {
       debugPrint('Failed to toggle video: $e');
+      // Revert state on failure
+      if (mounted) {
+        setState(() {
+          _isVideoOff = !newVideoOff;
+        });
+      }
     }
   }
 
@@ -646,6 +661,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _safetyTimer?.cancel();
     _filterService.dispose();
     _agoraService.dispose();
     super.dispose();

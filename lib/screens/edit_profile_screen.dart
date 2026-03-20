@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class EditProfileScreen extends StatefulWidget {
@@ -37,6 +38,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   @override
+  void dispose() {
+    usernameController.dispose();
+    genderController.dispose();
+    regionController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF181A20),
@@ -72,8 +81,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     CircleAvatar(
                       radius: 46,
-                      backgroundImage: NetworkImage(profilePictureUrl ?? ''),
                       backgroundColor: Colors.grey.shade900,
+                      backgroundImage: CachedNetworkImageProvider(profilePictureUrl ?? ''),
                     ),
                     const Positioned(
                       bottom: 0,

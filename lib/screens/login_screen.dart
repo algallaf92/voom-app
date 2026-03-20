@@ -17,6 +17,35 @@ class _LoginScreenState extends State<LoginScreen> {
   String? _errorMessage;
 
   @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  /// Runs [authAction] with loading state and error handling.
+  Future<void> _handleAuth(Future<void> Function() authAction, String errorPrefix) async {
+    setState(() {
+      isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      await authAction();
+      // TODO: Navigate to home/profile screen
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = '$errorPrefix: ${e.toString()}';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Stack(
@@ -130,72 +159,35 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleEmailSignIn() async {
-      setState(() {
-        isLoading = true;
-        _errorMessage = null;
-      });
-      try {
-        await _authService.signInWithEmail(emailController.text.trim(), passwordController.text.trim());
-        // TODO: Navigate to home/profile screen
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Email sign in failed: ${e.toString()}';
-        });
-      } finally {
-        setState(() => isLoading = false);
-      }
-    }
+    await _handleAuth(
+      () => _authService.signInWithEmail(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      ),
+      'Email sign in failed',
+    );
+  }
 
-    Future<void> _handleGoogleSignIn() async {
-      setState(() {
-        isLoading = true;
-        _errorMessage = null;
-      });
-      try {
-        await _authService.signInWithGoogle();
-        // TODO: Navigate to home/profile screen
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Google sign in failed: ${e.toString()}';
-        });
-      } finally {
-        setState(() => isLoading = false);
-      }
-    }
+  Future<void> _handleGoogleSignIn() async {
+    await _handleAuth(
+      () => _authService.signInWithGoogle(),
+      'Google sign in failed',
+    );
+  }
 
-    Future<void> _handleAppleSignIn() async {
-      setState(() {
-        isLoading = true;
-        _errorMessage = null;
-      });
-      try {
-        await _authService.signInWithApple();
-        // TODO: Navigate to home/profile screen
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Apple sign in failed: ${e.toString()}';
-        });
-      } finally {
-        setState(() => isLoading = false);
-      }
-    }
+  Future<void> _handleAppleSignIn() async {
+    await _handleAuth(
+      () => _authService.signInWithApple(),
+      'Apple sign in failed',
+    );
+  }
 
-    Future<void> _handleGuestSignIn() async {
-      setState(() {
-        isLoading = true;
-        _errorMessage = null;
-      });
-      try {
-        await _authService.signInAnonymously();
-        // TODO: Navigate to home/profile screen
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Guest sign in failed: ${e.toString()}';
-        });
-      } finally {
-        setState(() => isLoading = false);
-      }
-    }
+  Future<void> _handleGuestSignIn() async {
+    await _handleAuth(
+      () => _authService.signInAnonymously(),
+      'Guest sign in failed',
+    );
+  }
 
   Widget _buildTextField({
     required TextEditingController controller,
