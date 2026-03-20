@@ -210,7 +210,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
             child: Container(
               height: 60,
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Row(
@@ -298,7 +298,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
           // Loading indicator
           if (!_isInitialized)
             Container(
-              color: Colors.black.withOpacity(0.7),
+              color: Colors.black.withValues(alpha: 0.7),
               child: const Center(
                 child: CircularProgressIndicator(
                   color: accentColor,
@@ -326,9 +326,9 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? primaryColor : (isPremium ? secondaryColor.withOpacity(0.3) : Colors.transparent),
+            color: isSelected ? primaryColor : (isPremium ? secondaryColor.withValues(alpha: 0.3) : Colors.transparent),
             borderRadius: BorderRadius.circular(20),
-            border: isPremium ? Border.all(color: secondaryColor.withOpacity(0.5)) : null,
+            border: isPremium ? Border.all(color: secondaryColor.withValues(alpha: 0.5)) : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -406,7 +406,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               'Cancel',
-              style: TextStyle(color: textColor.withOpacity(0.7)),
+              style: TextStyle(color: textColor.withValues(alpha: 0.7)),
             ),
           ),
           TextButton(
@@ -500,7 +500,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
             onPressed: () => Navigator.of(context).pop(false),
             child: Text(
               'Cancel',
-              style: TextStyle(color: textColor.withOpacity(0.7)),
+              style: TextStyle(color: textColor.withValues(alpha: 0.7)),
             ),
           ),
           TextButton(
@@ -598,7 +598,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
             onPressed: () => Navigator.of(context).pop(false),
             child: Text(
               'Cancel',
-              style: TextStyle(color: textColor.withOpacity(0.7)),
+              style: TextStyle(color: textColor.withValues(alpha: 0.7)),
             ),
           ),
           TextButton(
@@ -715,7 +715,7 @@ class _ReportDialogState extends State<ReportDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             'Cancel',
-            style: TextStyle(color: textColor.withOpacity(0.7)),
+            style: TextStyle(color: textColor.withValues(alpha: 0.7)),
           ),
         ),
         TextButton(
@@ -725,7 +725,7 @@ class _ReportDialogState extends State<ReportDialog> {
           child: Text(
             'Next',
             style: TextStyle(
-              color: _selectedReason != null ? secondaryColor : textColor.withOpacity(0.5),
+              color: _selectedReason != null ? secondaryColor : textColor.withValues(alpha: 0.5),
             ),
           ),
         ),
@@ -778,12 +778,12 @@ class _ReportDescriptionDialogState extends State<ReportDescriptionDialog> {
             style: const TextStyle(color: textColor),
             decoration: InputDecoration(
               hintText: 'Please provide additional details (optional)',
-              hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
+              hintStyle: TextStyle(color: textColor.withValues(alpha: 0.5)),
               border: OutlineInputBorder(
-                borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+                borderSide: BorderSide(color: primaryColor.withValues(alpha: 0.3)),
               ),
               enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+                borderSide: BorderSide(color: primaryColor.withValues(alpha: 0.3)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderSide: const BorderSide(color: primaryColor),
@@ -797,7 +797,7 @@ class _ReportDescriptionDialogState extends State<ReportDescriptionDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             'Cancel',
-            style: TextStyle(color: textColor.withOpacity(0.7)),
+            style: TextStyle(color: textColor.withValues(alpha: 0.7)),
           ),
         ),
         TextButton(

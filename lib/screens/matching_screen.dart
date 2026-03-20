@@ -6,7 +6,6 @@ import '../services/monetization_service.dart';
 import '../services/matching_service.dart';
 import '../main.dart';
 
-/// Holds all premium-feature data needed to render a single button.
 class _PremiumButtonData {
   final bool isActive;
   final String? timeRemaining;
@@ -294,13 +293,13 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [color.withOpacity(0.8), color],
+                colors: [color.withValues(alpha: 0.8), color],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.5),
+                  color: color.withValues(alpha: 0.5),
                   blurRadius: 30,
                   spreadRadius: 5,
                 ),
@@ -393,7 +392,7 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
       '$_elapsedSeconds seconds',
       style: TextStyle(
         fontSize: 18,
-        color: textColor.withOpacity(0.7),
+        color: textColor.withValues(alpha: 0.7),
       ),
     );
   }
@@ -440,8 +439,8 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: isLoading
-            ? secondaryColor.withOpacity(0.5)
-            : (_canSkip ? secondaryColor : secondaryColor.withOpacity(0.5)),
+            ? secondaryColor.withValues(alpha: 0.5)
+            : (_canSkip ? secondaryColor : secondaryColor.withValues(alpha: 0.5)),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(25),
@@ -523,7 +522,7 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
             width: isWide ? 200 : 120,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: isEnabled ? accentColor.withOpacity(0.2) : (isActive ? primaryColor.withOpacity(0.3) : primaryColor.withOpacity(0.1)),
+              color: isEnabled ? accentColor.withValues(alpha: 0.2) : (isActive ? primaryColor.withValues(alpha: 0.3) : primaryColor.withValues(alpha: 0.1)),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: isEnabled ? accentColor : (isActive ? primaryColor : secondaryColor),

@@ -20,12 +20,12 @@ class LogoWidget extends StatelessWidget {
         ),
         boxShadow: [
           BoxShadow(
-            color: primaryColor.withOpacity(0.5),
+            color: primaryColor.withValues(alpha: 0.5),
             blurRadius: 20,
             spreadRadius: 5,
           ),
           BoxShadow(
-            color: accentColor.withOpacity(0.3),
+            color: accentColor.withValues(alpha: 0.3),
             blurRadius: 15,
             spreadRadius: 2,
           ),
@@ -48,7 +48,7 @@ class LogoWidget extends StatelessWidget {
               color: Colors.transparent,
               boxShadow: [
                 BoxShadow(
-                  color: primaryColor.withOpacity(0.2),
+                  color: primaryColor.withValues(alpha: 0.2),
                   blurRadius: 30,
                   spreadRadius: 10,
                 ),
@@ -116,7 +116,7 @@ Widget buildControlButton({
             boxShadow: glow
                 ? [
                     BoxShadow(
-                      color: color.withOpacity(0.5),
+                      color: color.withValues(alpha: 0.5),
                       blurRadius: 20,
                       spreadRadius: 5,
                     ),
@@ -135,7 +135,7 @@ Widget buildControlButton({
         Text(
           label,
           style: TextStyle(
-            color: textColor.withOpacity(0.7),
+            color: textColor.withValues(alpha: 0.7),
             fontSize: 10,
           ),
           textAlign: TextAlign.center,

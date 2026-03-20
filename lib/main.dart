@@ -191,6 +191,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(_glowController);
 
     Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
@@ -226,7 +227,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   decoration: BoxDecoration(
                     boxShadow: [
                       BoxShadow(
-                        color: primaryColor.withOpacity(_glowAnimation.value * 0.5),
+                        color: primaryColor.withValues(alpha: _glowAnimation.value * 0.5),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),

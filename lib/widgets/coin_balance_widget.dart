@@ -1,5 +1,5 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../constants.dart';
 import '../services/monetization_service.dart';
 
@@ -56,15 +56,15 @@ class _CoinBalanceWidgetState extends State<CoinBalanceWidget> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: _showWarning ? secondaryColor.withOpacity(0.1) : primaryColor.withOpacity(0.1),
+        color: _showWarning ? secondaryColor.withValues(alpha: 0.1) : primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: _showWarning ? secondaryColor.withOpacity(0.5) : primaryColor.withOpacity(0.3),
+          color: _showWarning ? secondaryColor.withValues(alpha: 0.5) : primaryColor.withValues(alpha: 0.3),
           width: _showWarning ? 2 : 1,
         ),
         boxShadow: _showWarning ? [
           BoxShadow(
-            color: secondaryColor.withOpacity(0.3),
+            color: secondaryColor.withValues(alpha: 0.3),
             blurRadius: 8,
             spreadRadius: 1,
           ),

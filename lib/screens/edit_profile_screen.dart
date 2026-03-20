@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String username;
@@ -72,7 +72,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.cyanAccent.withOpacity(0.7),
+                            color: Colors.cyanAccent.withValues(alpha: 0.7),
                             blurRadius: 24,
                             spreadRadius: 2,
                           ),
@@ -140,7 +140,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.cyanAccent.withOpacity(0.6),
+              color: Colors.cyanAccent.withValues(alpha: 0.6),
               blurRadius: 16,
               spreadRadius: 2,
               offset: const Offset(0, 0),

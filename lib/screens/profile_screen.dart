@@ -1,5 +1,5 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 
 class ProfileScreen extends StatelessWidget {
   final String username;
@@ -53,7 +53,7 @@ class ProfileScreen extends StatelessWidget {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.cyanAccent.withOpacity(0.7),
+                              color: Colors.cyanAccent.withValues(alpha: 0.7),
                               blurRadius: 32,
                               spreadRadius: 4,
                             ),
@@ -165,13 +165,13 @@ class ProfileScreen extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           gradient: LinearGradient(
-            colors: [color.withOpacity(0.8), color.withOpacity(0.5)],
+            colors: [color.withValues(alpha: 0.8), color.withValues(alpha: 0.5)],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           boxShadow: [
             BoxShadow(
-              color: color.withOpacity(0.5),
+              color: color.withValues(alpha: 0.5),
               blurRadius: 16,
               spreadRadius: 2,
               offset: const Offset(0, 0),
