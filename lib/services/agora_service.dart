@@ -3,7 +3,7 @@ import 'package:flutter/foundation.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 class AgoraService {
-  static const String appId = 'YOUR_AGORA_APP_ID'; // Replace with your Agora App ID
+  static const String appId = '86e45b74f65d4e6190c86109212ab412';
   RtcEngine? _engine;
   bool _isInitialized = false;
 

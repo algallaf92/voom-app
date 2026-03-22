@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<!-- Required by sign_in_with_apple package -->
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
+	<!-- Required by in_app_purchase package (StoreKit) -->
+	<key>com.apple.developer.in-app-payments</key>
+	<array/>
+	<!-- Push notifications for Firebase Cloud Messaging -->
+	<key>aps-environment</key>
+	<string>development</string>
+</dict>
+</plist>

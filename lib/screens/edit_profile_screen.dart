@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class EditProfileScreen extends StatefulWidget {
   final String username;
@@ -37,6 +41,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   @override
+  void dispose() {
+    usernameController.dispose();
+    genderController.dispose();
+    regionController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF181A20),
@@ -63,7 +75,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         shape: BoxShape.circle,
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.cyanAccent.withOpacity(0.7),
+                            color: Colors.cyanAccent.withValues(alpha: 0.7),
                             blurRadius: 24,
                             spreadRadius: 2,
                           ),
@@ -72,8 +84,8 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ),
                     CircleAvatar(
                       radius: 46,
-                      backgroundImage: NetworkImage(profilePictureUrl ?? ''),
                       backgroundColor: Colors.grey.shade900,
+                      backgroundImage: CachedNetworkImageProvider(profilePictureUrl ?? ''),
                     ),
                     const Positioned(
                       bottom: 0,
@@ -131,7 +143,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.cyanAccent.withOpacity(0.6),
+              color: Colors.cyanAccent.withValues(alpha: 0.6),
               blurRadius: 16,
               spreadRadius: 2,
               offset: const Offset(0, 0),
@@ -162,20 +174,40 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     );
   }
 
-  void _changeProfilePicture() {
-    // TODO: Implement image picker and upload logic
+  void _changeProfilePicture() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.gallery, imageQuality: 85);
+    if (picked != null) {
+      setState(() {
+        profilePictureUrl = picked.path;
+      });
+    }
   }
 
-  void _saveProfile() {
+  void _saveProfile() async {
     setState(() => isSaving = true);
-    // TODO: Save changes to Firestore
+
+    final uid = FirebaseAuth.instance.currentUser?.uid;
+    if (uid != null) {
+      // Only save fields that have cloud-accessible values.
+      // profilePictureUrl is skipped here until Firebase Storage upload is implemented.
+      await FirebaseFirestore.instance.collection('users').doc(uid).set({
+        'username': usernameController.text.trim(),
+        'gender': genderController.text.trim(),
+        'region': regionController.text.trim(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    }
+
     widget.onSave(
       usernameController.text,
       genderController.text,
       regionController.text,
       profilePictureUrl ?? '',
     );
-    setState(() => isSaving = false);
-    Navigator.pop(context);
+    if (mounted) {
+      setState(() => isSaving = false);
+      Navigator.pop(context);
+    }
   }
 }

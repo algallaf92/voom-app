@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter/foundation.dart';
 
 class AuthService {
@@ -46,9 +47,20 @@ class AuthService {
     await GoogleSignIn().signOut();
   }
 
-  // Apple sign in (stub, needs platform implementation)
+  // Apple sign in — works on iOS 13+, macOS 10.15+
   Future<UserCredential?> signInWithApple() async {
-    // TODO: Implement Apple sign in for iOS/macOS
-    throw UnimplementedError('Apple sign in not implemented');
+    final appleCredential = await SignInWithApple.getAppleIDCredential(
+      scopes: [
+        AppleIDAuthorizationScopes.email,
+        AppleIDAuthorizationScopes.fullName,
+      ],
+    );
+
+    final oauthCredential = OAuthProvider('apple.com').credential(
+      idToken: appleCredential.identityToken,
+      accessToken: appleCredential.authorizationCode,
+    );
+
+    return await _auth.signInWithCredential(oauthCredential);
   }
 }

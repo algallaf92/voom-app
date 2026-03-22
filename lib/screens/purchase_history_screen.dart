@@ -24,12 +24,12 @@ class PurchaseHistoryScreen extends StatelessWidget {
             duration: const Duration(milliseconds: 300),
             margin: const EdgeInsets.only(bottom: 16),
             decoration: BoxDecoration(
-              color: isRecent ? Colors.cyanAccent.withOpacity(0.15) : Colors.white10,
+              color: isRecent ? Colors.cyanAccent.withValues(alpha: 0.15) : Colors.white10,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 if (isRecent)
                   BoxShadow(
-                    color: Colors.cyanAccent.withOpacity(0.3),
+                    color: Colors.cyanAccent.withValues(alpha: 0.3),
                     blurRadius: 16,
                     spreadRadius: 2,
                   ),

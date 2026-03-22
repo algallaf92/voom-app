@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:async';
 import '../constants.dart';
 import '../services/monetization_service.dart';
 
@@ -19,17 +20,27 @@ class CoinBalanceWidget extends StatefulWidget {
 class _CoinBalanceWidgetState extends State<CoinBalanceWidget> {
   int _coinBalance = 0;
   bool _showWarning = false;
+  late StreamSubscription<CoinBalance> _balanceSubscription;
 
   @override
   void initState() {
     super.initState();
     _loadCoinBalance();
-    widget.monetizationService.coinBalanceStream.listen((balance) {
-      setState(() {
-        _coinBalance = balance.balance;
-        _showWarning = widget.showLowBalanceWarning && _coinBalance < 20;
-      });
+    _balanceSubscription =
+        widget.monetizationService.coinBalanceStream.listen((balance) {
+      if (mounted) {
+        setState(() {
+          _coinBalance = balance.balance;
+          _showWarning = widget.showLowBalanceWarning && _coinBalance < 20;
+        });
+      }
     });
+  }
+
+  @override
+  void dispose() {
+    _balanceSubscription.cancel();
+    super.dispose();
   }
 
   Future<void> _loadCoinBalance() async {
@@ -45,15 +56,15 @@ class _CoinBalanceWidgetState extends State<CoinBalanceWidget> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
-        color: _showWarning ? secondaryColor.withOpacity(0.1) : primaryColor.withOpacity(0.1),
+        color: _showWarning ? secondaryColor.withValues(alpha: 0.1) : primaryColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: _showWarning ? secondaryColor.withOpacity(0.5) : primaryColor.withOpacity(0.3),
+          color: _showWarning ? secondaryColor.withValues(alpha: 0.5) : primaryColor.withValues(alpha: 0.3),
           width: _showWarning ? 2 : 1,
         ),
         boxShadow: _showWarning ? [
           BoxShadow(
-            color: secondaryColor.withOpacity(0.3),
+            color: secondaryColor.withValues(alpha: 0.3),
             blurRadius: 8,
             spreadRadius: 1,
           ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../main.dart';
 import '../services/safety_service.dart';
 import '../widgets/buttons.dart';
@@ -10,7 +11,16 @@ import '../services/filter_service.dart';
 import '../constants.dart';
 
 class VideoChatScreen extends StatefulWidget {
-  const VideoChatScreen({super.key});
+  final String channelName;
+  final String remoteUserId;
+  final String matchId;
+
+  const VideoChatScreen({
+    super.key,
+    required this.channelName,
+    required this.remoteUserId,
+    required this.matchId,
+  });
 
   @override
   _VideoChatScreenState createState() => _VideoChatScreenState();
@@ -25,9 +35,9 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   bool _isInitialized = false;
   bool _premiumFiltersUnlocked = false;
   final bool _remoteCameraOn = true; // Track remote user's camera status
-  final String _remoteUserId = '';
 
   String _currentFilter = 'None';
+  Timer? _safetyTimer;
 
   @override
   void initState() {
@@ -48,14 +58,14 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
 
   void _startSafetyMonitoring() {
     // Monitor for auto-skip conditions every 5 seconds
-    Timer.periodic(const Duration(seconds: 5), (timer) async {
+    _safetyTimer = Timer.periodic(const Duration(seconds: 5), (timer) async {
       if (!mounted) {
         timer.cancel();
         return;
       }
 
       final safetyService = SafetyProvider.of(context);
-      await safetyService.checkCameraStatus(_remoteCameraOn, _remoteUserId);
+      await safetyService.checkCameraStatus(_remoteCameraOn, widget.remoteUserId);
 
       // Auto-skip if camera is off and setting is enabled
       final settings = await safetyService.getSafetySettings();
@@ -121,18 +131,18 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
 
   Future<void> _initializeServices() async {
     try {
-      // Initialize Agora
-      await _agoraService.initialize();
-
-      // Initialize filters
-      await _filterService.initialize();
+      // Initialize Agora and filters in parallel for faster startup
+      await Future.wait([
+        _agoraService.initialize(),
+        _filterService.initialize(),
+      ]);
 
       // Start camera stream for filters
       await _filterService.startCameraStream();
 
       // Join a test channel (replace with actual channel logic)
       await _agoraService.joinChannel(
-        'test_channel_${DateTime.now().millisecondsSinceEpoch}',
+        widget.channelName,
         '', // Token - use your token generation logic
         0,  // UID
       );
@@ -209,7 +219,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
             child: Container(
               height: 60,
               decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.5),
+                color: Colors.black.withValues(alpha: 0.5),
                 borderRadius: BorderRadius.circular(30),
               ),
               child: Row(
@@ -297,7 +307,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
           // Loading indicator
           if (!_isInitialized)
             Container(
-              color: Colors.black.withOpacity(0.7),
+              color: Colors.black.withValues(alpha: 0.7),
               child: const Center(
                 child: CircularProgressIndicator(
                   color: accentColor,
@@ -325,9 +335,9 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected ? primaryColor : (isPremium ? secondaryColor.withOpacity(0.3) : Colors.transparent),
+            color: isSelected ? primaryColor : (isPremium ? secondaryColor.withValues(alpha: 0.3) : Colors.transparent),
             borderRadius: BorderRadius.circular(20),
-            border: isPremium ? Border.all(color: secondaryColor.withOpacity(0.5)) : null,
+            border: isPremium ? Border.all(color: secondaryColor.withValues(alpha: 0.5)) : null,
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -405,7 +415,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
             onPressed: () => Navigator.of(context).pop(),
             child: Text(
               'Cancel',
-              style: TextStyle(color: textColor.withOpacity(0.7)),
+              style: TextStyle(color: textColor.withValues(alpha: 0.7)),
             ),
           ),
           TextButton(
@@ -443,26 +453,40 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   }
 
   void _toggleMute() async {
+    final newMuted = !_isMuted;
     setState(() {
-      _isMuted = !_isMuted;
+      _isMuted = newMuted;
     });
 
     try {
-      await _agoraService.toggleAudio(!_isMuted);
+      await _agoraService.toggleAudio(!newMuted);
     } catch (e) {
       debugPrint('Failed to toggle audio: $e');
+      // Revert state on failure
+      if (mounted) {
+        setState(() {
+          _isMuted = !newMuted;
+        });
+      }
     }
   }
 
   void _toggleVideo() async {
+    final newVideoOff = !_isVideoOff;
     setState(() {
-      _isVideoOff = !_isVideoOff;
+      _isVideoOff = newVideoOff;
     });
 
     try {
-      await _agoraService.toggleVideo(!_isVideoOff);
+      await _agoraService.toggleVideo(!newVideoOff);
     } catch (e) {
       debugPrint('Failed to toggle video: $e');
+      // Revert state on failure
+      if (mounted) {
+        setState(() {
+          _isVideoOff = !newVideoOff;
+        });
+      }
     }
   }
 
@@ -485,7 +509,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
             onPressed: () => Navigator.of(context).pop(false),
             child: Text(
               'Cancel',
-              style: TextStyle(color: textColor.withOpacity(0.7)),
+              style: TextStyle(color: textColor.withValues(alpha: 0.7)),
             ),
           ),
           TextButton(
@@ -520,6 +544,9 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   }
 
   void _reportUser() async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) return; // Require authentication
+
     final safetyService = SafetyProvider.of(context);
 
     final reason = await showDialog<String>(
@@ -538,11 +565,11 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
       if (description != null && mounted) {
         try {
           await safetyService.reportUser(
-            reporterId: 'current_user_id', // TODO: Get from auth service
-            reportedUserId: _remoteUserId,
+            reporterId: currentUid,
+            reportedUserId: widget.remoteUserId,
             reason: reason,
             description: description,
-            chatSessionId: 'current_session_id', // TODO: Get from matching service
+            chatSessionId: widget.matchId,
           );
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -564,6 +591,9 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   }
 
   void _blockUser() async {
+    final currentUid = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUid == null) return; // Require authentication
+
     final safetyService = SafetyProvider.of(context);
 
     final confirmed = await showDialog<bool>(
@@ -583,7 +613,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
             onPressed: () => Navigator.of(context).pop(false),
             child: Text(
               'Cancel',
-              style: TextStyle(color: textColor.withOpacity(0.7)),
+              style: TextStyle(color: textColor.withValues(alpha: 0.7)),
             ),
           ),
           TextButton(
@@ -600,8 +630,8 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
     if (confirmed == true) {
       try {
         await safetyService.blockUser(
-          blockerId: 'current_user_id', // TODO: Get from auth service
-          blockedUserId: _remoteUserId,
+          blockerId: currentUid,
+          blockedUserId: widget.remoteUserId,
           reason: 'User blocked during chat',
         );
 
@@ -646,6 +676,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    _safetyTimer?.cancel();
     _filterService.dispose();
     _agoraService.dispose();
     super.dispose();
@@ -699,7 +730,7 @@ class _ReportDialogState extends State<ReportDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             'Cancel',
-            style: TextStyle(color: textColor.withOpacity(0.7)),
+            style: TextStyle(color: textColor.withValues(alpha: 0.7)),
           ),
         ),
         TextButton(
@@ -709,7 +740,7 @@ class _ReportDialogState extends State<ReportDialog> {
           child: Text(
             'Next',
             style: TextStyle(
-              color: _selectedReason != null ? secondaryColor : textColor.withOpacity(0.5),
+              color: _selectedReason != null ? secondaryColor : textColor.withValues(alpha: 0.5),
             ),
           ),
         ),
@@ -762,12 +793,12 @@ class _ReportDescriptionDialogState extends State<ReportDescriptionDialog> {
             style: const TextStyle(color: textColor),
             decoration: InputDecoration(
               hintText: 'Please provide additional details (optional)',
-              hintStyle: TextStyle(color: textColor.withOpacity(0.5)),
+              hintStyle: TextStyle(color: textColor.withValues(alpha: 0.5)),
               border: OutlineInputBorder(
-                borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+                borderSide: BorderSide(color: primaryColor.withValues(alpha: 0.3)),
               ),
               enabledBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: primaryColor.withOpacity(0.3)),
+                borderSide: BorderSide(color: primaryColor.withValues(alpha: 0.3)),
               ),
               focusedBorder: OutlineInputBorder(
                 borderSide: const BorderSide(color: primaryColor),
@@ -781,7 +812,7 @@ class _ReportDescriptionDialogState extends State<ReportDescriptionDialog> {
           onPressed: () => Navigator.of(context).pop(),
           child: Text(
             'Cancel',
-            style: TextStyle(color: textColor.withOpacity(0.7)),
+            style: TextStyle(color: textColor.withValues(alpha: 0.7)),
           ),
         ),
         TextButton(

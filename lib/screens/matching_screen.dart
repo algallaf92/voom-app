@@ -6,6 +6,18 @@ import '../services/monetization_service.dart';
 import '../services/matching_service.dart';
 import '../main.dart';
 
+class _PremiumButtonData {
+  final bool isActive;
+  final String? timeRemaining;
+  final int? usesRemaining;
+
+  const _PremiumButtonData({
+    required this.isActive,
+    this.timeRemaining,
+    this.usesRemaining,
+  });
+}
+
 class MatchingScreen extends StatefulWidget {
   const MatchingScreen({super.key});
 
@@ -29,6 +41,9 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
   bool _canSkip = true;
   bool _showRetryButton = false;
   String? _matchedUserId;
+  // Default preferences — updated when the user picks a specific value.
+  String? _selectedGender;
+  String? _selectedRegion;
 
   @override
   void initState() {
@@ -99,15 +114,19 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
     });
 
     try {
-      // Start matching process
-      final userId = await matchingService.findMatch(currentUserId: 'current_user_id');
+      // Start real Firestore matchmaking.
+      final result = await matchingService.findMatch(
+        genderPreference: _genderFilterEnabled ? _selectedGender : null,
+        regionPreference: _regionFilterEnabled ? _selectedRegion : null,
+        isPriority: _priorityMatchingEnabled,
+      );
 
-      if (userId != null && mounted) {
+      if (result != null && mounted) {
         // Cancel timeout timer since we found a match
         _timeoutTimer?.cancel();
 
         setState(() {
-          _matchedUserId = userId;
+          _matchedUserId = result.matchedUserId;
         });
 
         // Navigate to video chat after a brief success animation
@@ -115,7 +134,13 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
           if (mounted) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const VideoChatScreen()),
+              MaterialPageRoute(
+                builder: (context) => VideoChatScreen(
+                  channelName: result.channelName,
+                  remoteUserId: result.matchedUserId,
+                  matchId: result.matchId,
+                ),
+              ),
             );
           }
         });
@@ -221,8 +246,48 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    // TODO: Implement the actual UI. This is a placeholder to fix the build error.
-    return const SizedBox.shrink();
+    final matchingService = MatchingProvider.of(context);
+    final monetizationService = MonetizationProvider.of(context);
+    final state = matchingService.currentState;
+
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: textColor),
+          onPressed: () {
+            matchingService.cancelMatch();
+            Navigator.pop(context);
+          },
+        ),
+        title: const Text(
+          'Finding a Match',
+          style: TextStyle(color: textColor, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Spacer(),
+            _buildAnimatedIcon(state),
+            const SizedBox(height: 32),
+            _buildStatusText(state),
+            const SizedBox(height: 12),
+            _buildTimerText(state),
+            const Spacer(),
+            _buildPremiumFeatures(monetizationService),
+            const SizedBox(height: 32),
+            _buildActionButton(state),
+            const SizedBox(height: 48),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildAnimatedIcon(MatchingState state) {
@@ -281,13 +346,13 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [color.withOpacity(0.8), color],
+                colors: [color.withValues(alpha: 0.8), color],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: color.withOpacity(0.5),
+                  color: color.withValues(alpha: 0.5),
                   blurRadius: 30,
                   spreadRadius: 5,
                 ),
@@ -380,7 +445,7 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
       '$_elapsedSeconds seconds',
       style: TextStyle(
         fontSize: 18,
-        color: textColor.withOpacity(0.7),
+        color: textColor.withValues(alpha: 0.7),
       ),
     );
   }
@@ -427,8 +492,8 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
       ),
       style: ElevatedButton.styleFrom(
         backgroundColor: isLoading
-            ? secondaryColor.withOpacity(0.5)
-            : (_canSkip ? secondaryColor : secondaryColor.withOpacity(0.5)),
+            ? secondaryColor.withValues(alpha: 0.5)
+            : (_canSkip ? secondaryColor : secondaryColor.withValues(alpha: 0.5)),
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(25),
@@ -489,101 +554,97 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
     VoidCallback onTap, {
     bool isWide = false,
   }) {
-    return FutureBuilder<bool>(
-      future: monetizationService.isFeatureActive(featureId),
-      builder: (context, activeSnapshot) {
-        final isActive = activeSnapshot.data ?? false;
+    return FutureBuilder<_PremiumButtonData>(
+      future: Future.wait([
+        monetizationService.isFeatureActive(featureId),
+        monetizationService.getFeatureTimeRemaining(featureId),
+        monetizationService.getFeatureUsesRemaining(featureId),
+      ]).then((results) => _PremiumButtonData(
+            isActive: results[0] as bool,
+            timeRemaining: results[1] as String?,
+            usesRemaining: results[2] as int?,
+          )),
+      builder: (context, snapshot) {
+        final isActive = snapshot.data?.isActive ?? false;
+        final timeRemaining = snapshot.data?.timeRemaining;
+        final usesRemaining = snapshot.data?.usesRemaining;
 
-        return FutureBuilder<String?>(
-          future: monetizationService.getFeatureTimeRemaining(featureId),
-          builder: (context, timeSnapshot) {
-            final timeRemaining = timeSnapshot.data;
-
-            return FutureBuilder<int?>(
-              future: monetizationService.getFeatureUsesRemaining(featureId),
-              builder: (context, usesSnapshot) {
-                final usesRemaining = usesSnapshot.data;
-
-                return GestureDetector(
-                  onTap: isActive ? onTap : () => _unlockFeature(monetizationService, featureId, coinCost),
-                  child: Container(
-                    width: isWide ? 200 : 120,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isEnabled ? accentColor.withOpacity(0.2) : (isActive ? primaryColor.withOpacity(0.3) : primaryColor.withOpacity(0.1)),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                        color: isEnabled ? accentColor : (isActive ? primaryColor : secondaryColor),
-                        width: isActive ? 2 : 1,
+        return GestureDetector(
+          onTap: isActive ? onTap : () => _unlockFeature(monetizationService, featureId, coinCost),
+          child: Container(
+            width: isWide ? 200 : 120,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: isEnabled ? accentColor.withValues(alpha: 0.2) : (isActive ? primaryColor.withValues(alpha: 0.3) : primaryColor.withValues(alpha: 0.1)),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: isEnabled ? accentColor : (isActive ? primaryColor : secondaryColor),
+                width: isActive ? 2 : 1,
+              ),
+            ),
+            child: Column(
+              children: [
+                Icon(
+                  icon,
+                  color: isEnabled ? accentColor : (isActive ? primaryColor : secondaryColor),
+                  size: 24,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isEnabled ? accentColor : (isActive ? textColor : secondaryColor),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+                if (isActive) ...[
+                  const SizedBox(height: 2),
+                  if (timeRemaining != null) ...[
+                    Text(
+                      timeRemaining,
+                      style: const TextStyle(
+                        color: accentColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    child: Column(
-                      children: [
-                        Icon(
-                          icon,
-                          color: isEnabled ? accentColor : (isActive ? primaryColor : secondaryColor),
-                          size: 24,
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          label,
-                          style: TextStyle(
-                            color: isEnabled ? accentColor : (isActive ? textColor : secondaryColor),
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        if (isActive) ...[
-                          const SizedBox(height: 2),
-                          if (timeRemaining != null) ...[
-                            Text(
-                              timeRemaining,
-                              style: const TextStyle(
-                                color: accentColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ] else if (usesRemaining != null) ...[
-                            Text(
-                              '$usesRemaining left',
-                              style: const TextStyle(
-                                color: accentColor,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ],
-                        ] else ...[
-                          const SizedBox(height: 2),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                Icons.monetization_on,
-                                color: accentColor,
-                                size: 12,
-                              ),
-                              const SizedBox(width: 2),
-                              Text(
-                                '$coinCost',
-                                style: const TextStyle(
-                                  color: accentColor,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ],
+                  ] else if (usesRemaining != null) ...[
+                    Text(
+                      '$usesRemaining left',
+                      style: const TextStyle(
+                        color: accentColor,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
+                  ],
+                ] else ...[
+                  const SizedBox(height: 2),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.monetization_on,
+                        color: accentColor,
+                        size: 12,
+                      ),
+                      const SizedBox(width: 2),
+                      Text(
+                        '$coinCost',
+                        style: const TextStyle(
+                          color: accentColor,
+                          fontSize: 10,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
-                );
-              },
-            );
-          },
+                ],
+              ],
+            ),
+          ),
         );
       },
     );

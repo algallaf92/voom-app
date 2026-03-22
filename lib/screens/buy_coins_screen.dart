@@ -67,9 +67,9 @@ class _BuyCoinsScreenState extends State<BuyCoinsScreen> {
                 padding: const EdgeInsets.all(12),
                 margin: const EdgeInsets.only(top: 16),
                 decoration: BoxDecoration(
-                  color: secondaryColor.withOpacity(0.1),
+                  color: secondaryColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: secondaryColor.withOpacity(0.3)),
+                  border: Border.all(color: secondaryColor.withValues(alpha: 0.3)),
                 ),
                 child: Text(
                   _errorMessage!,
@@ -89,11 +89,11 @@ class _BuyCoinsScreenState extends State<BuyCoinsScreen> {
         .reduce((a, b) => a > b ? a : b);
 
     return Card(
-      color: coinPackage.isBundle ? accentColor.withOpacity(0.1) : primaryColor.withOpacity(0.1),
+      color: coinPackage.isBundle ? accentColor.withValues(alpha: 0.1) : primaryColor.withValues(alpha: 0.1),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: coinPackage.isBundle ? accentColor : (isBestValue ? accentColor : primaryColor.withOpacity(0.3)),
+          color: coinPackage.isBundle ? accentColor : (isBestValue ? accentColor : primaryColor.withValues(alpha: 0.3)),
           width: coinPackage.isBundle ? 2 : (isBestValue ? 2 : 1),
         ),
       ),
@@ -194,7 +194,7 @@ class _BuyCoinsScreenState extends State<BuyCoinsScreen> {
             Text(
               '${coinPackage.currency} ${coinPackage.price}',
               style: TextStyle(
-                color: textColor.withOpacity(0.7),
+                color: textColor.withValues(alpha: 0.7),
                 fontSize: 14,
               ),
             ),

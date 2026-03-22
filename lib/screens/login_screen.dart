@@ -1,4 +1,5 @@
 
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
 
@@ -15,6 +16,37 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isLoading = false;
   final AuthService _authService = AuthService();
   String? _errorMessage;
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    passwordController.dispose();
+    super.dispose();
+  }
+
+  /// Runs [authAction] with loading state and error handling.
+  Future<void> _handleAuth(Future<void> Function() authAction, String errorPrefix) async {
+    setState(() {
+      isLoading = true;
+      _errorMessage = null;
+    });
+    try {
+      await authAction();
+      if (mounted) {
+        Navigator.pushReplacementNamed(context, '/');
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = '$errorPrefix: ${e.toString()}';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => isLoading = false);
+      }
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -92,12 +124,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     onTap: _handleGoogleSignIn,
                     icon: Icons.g_mobiledata,
                   ),
-                  const SizedBox(height: 16),
-                  _buildNeonButton(
-                    text: 'Sign in with Apple',
-                    onTap: _handleAppleSignIn,
-                    icon: Icons.apple,
-                  ),
+                  if (Platform.isIOS || Platform.isMacOS) ...[
+                    const SizedBox(height: 16),
+                    _buildNeonButton(
+                      text: 'Sign in with Apple',
+                      onTap: _handleAppleSignIn,
+                      icon: Icons.apple,
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   _buildNeonButton(
                     text: 'Continue as Guest',
@@ -119,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       if (isLoading)
             Container(
-              color: Colors.black.withOpacity(0.4),
+              color: Colors.black.withValues(alpha: 0.4),
               child: const Center(
                 child: CircularProgressIndicator(color: Colors.cyanAccent),
               ),
@@ -130,72 +164,35 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleEmailSignIn() async {
-      setState(() {
-        isLoading = true;
-        _errorMessage = null;
-      });
-      try {
-        await _authService.signInWithEmail(emailController.text.trim(), passwordController.text.trim());
-        // TODO: Navigate to home/profile screen
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Email sign in failed: ${e.toString()}';
-        });
-      } finally {
-        setState(() => isLoading = false);
-      }
-    }
+    await _handleAuth(
+      () => _authService.signInWithEmail(
+        emailController.text.trim(),
+        passwordController.text.trim(),
+      ),
+      'Email sign in failed',
+    );
+  }
 
-    Future<void> _handleGoogleSignIn() async {
-      setState(() {
-        isLoading = true;
-        _errorMessage = null;
-      });
-      try {
-        await _authService.signInWithGoogle();
-        // TODO: Navigate to home/profile screen
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Google sign in failed: ${e.toString()}';
-        });
-      } finally {
-        setState(() => isLoading = false);
-      }
-    }
+  Future<void> _handleGoogleSignIn() async {
+    await _handleAuth(
+      () => _authService.signInWithGoogle(),
+      'Google sign in failed',
+    );
+  }
 
-    Future<void> _handleAppleSignIn() async {
-      setState(() {
-        isLoading = true;
-        _errorMessage = null;
-      });
-      try {
-        await _authService.signInWithApple();
-        // TODO: Navigate to home/profile screen
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Apple sign in failed: ${e.toString()}';
-        });
-      } finally {
-        setState(() => isLoading = false);
-      }
-    }
+  Future<void> _handleAppleSignIn() async {
+    await _handleAuth(
+      () => _authService.signInWithApple(),
+      'Apple sign in failed',
+    );
+  }
 
-    Future<void> _handleGuestSignIn() async {
-      setState(() {
-        isLoading = true;
-        _errorMessage = null;
-      });
-      try {
-        await _authService.signInAnonymously();
-        // TODO: Navigate to home/profile screen
-      } catch (e) {
-        setState(() {
-          _errorMessage = 'Guest sign in failed: ${e.toString()}';
-        });
-      } finally {
-        setState(() => isLoading = false);
-      }
-    }
+  Future<void> _handleGuestSignIn() async {
+    await _handleAuth(
+      () => _authService.signInAnonymously(),
+      'Guest sign in failed',
+    );
+  }
 
   Widget _buildTextField({
     required TextEditingController controller,
@@ -241,7 +238,7 @@ class _LoginScreenState extends State<LoginScreen> {
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.cyanAccent.withOpacity(0.6),
+              color: Colors.cyanAccent.withValues(alpha: 0.6),
               blurRadius: 16,
               spreadRadius: 2,
               offset: const Offset(0, 0),

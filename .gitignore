@@ -28,3 +28,9 @@ ios/build/
 windows/flutter/ephemeral/
 *.zip
 
+# Firebase credential files — NEVER commit real credentials.
+# Use the *.template files as a guide, then place real files here.
+# These real files are intentionally excluded from version control.
+ios/Runner/GoogleService-Info.plist
+android/app/google-services.json
+

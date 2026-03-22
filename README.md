@@ -38,7 +38,8 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
 
 - Flutter SDK (3.41.4 or later)
 - Android Studio or VS Code with Flutter extension
-- Android device or emulator for testing
+- Android device or emulator for Android testing
+- **iOS only:** macOS with Xcode 15+, CocoaPods (`sudo gem install cocoapods`), and an iOS 13+ device or simulator
 
 ### Installation
 
@@ -53,28 +54,126 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
    flutter pub get
    ```
 
+   **iOS only** — install CocoaPods dependencies:
+   ```bash
+   cd ios && pod install && cd ..
+   ```
+   This generates `ios/Runner.xcworkspace`, which Xcode and `flutter run` use for iOS builds.
+   Always open `ios/Runner.xcworkspace` (not `Runner.xcodeproj`) in Xcode.
+
 3. Set up Firebase:
    - Create a Firebase project at https://console.firebase.google.com/
-   - Enable Firestore
-   - Add your Android app and download `google-services.json`
-   - Place `google-services.json` in `android/app/`
+   - Enable **Firestore** and **Authentication** (Email/Password + Google + Apple + Anonymous) in the Firebase Console.
+
+   **Deploy Firestore rules and indexes** (required for matchmaking to work):
+   ```bash
+   # Install the Firebase CLI if you haven't already
+   npm install -g firebase-tools
+   firebase login
+   firebase use --add   # select your project
+
+   # Deploy security rules and composite indexes
+   firebase deploy --only firestore
+   ```
+   The rules file (`firestore.rules`) and index file (`firestore.indexes.json`) are already in the repo root.
+
+   The credential files (`ios/Runner/GoogleService-Info.plist` and `android/app/google-services.json`) are listed in `.gitignore` and **must never be committed**. Use the provided scripts to set them up:
+
+   ```bash
+   # 1. Copy the templates to the correct locations
+   bash scripts/setup_firebase.sh
+
+   # 2. Download the real files from Firebase Console and overwrite:
+   #    • ios/Runner/GoogleService-Info.plist   (iOS)
+   #    • android/app/google-services.json      (Android)
+
+   # 3. Validate that the placeholder values have been replaced
+   bash scripts/validate_firebase.sh
+   ```
+
+   **Android:**
+   - In the Firebase Console go to **Project Settings → Your apps → Android app**.
+   - Register the app with package name `com.example.voom` (or your bundle ID).
+   - Download `google-services.json` and place it in `android/app/`.
+
+   **iOS:**
+   - In the Firebase Console go to **Project Settings → Your apps → iOS+ app**.
+   - Register the app with bundle ID `com.example.voom` (must match `PRODUCT_BUNDLE_IDENTIFIER` in `ios/Runner.xcodeproj/project.pbxproj`).
+   - Click **Download GoogleService-Info.plist**.
+   - Place the downloaded file at `ios/Runner/GoogleService-Info.plist`.
+   - Open Xcode (`open ios/Runner.xcworkspace`), select the **Runner** target, go to **Build Phases → Copy Bundle Resources**, and confirm `GoogleService-Info.plist` is listed (it was added automatically; if not, drag it in).
 
 4. Set up Agora:
-   - Create an Agora account at https://console.agora.io/
-   - Get your App ID and add it to `lib/services/agora_service.dart` (replace the placeholder)
+   - The Agora App ID is already configured in `lib/services/agora_service.dart`.
+   - If you need to use a different Agora project, create an account at https://console.agora.io/, get your App ID, and replace the value of `appId` in that file.
+   - **Security note:** For production deployments or public repositories, move the App ID out of source code and supply it via environment variables or a secrets manager.
 
 5. Set up DeepAR:
-   - Get DeepAR license at https://developer.deepar.ai/
-   - Add API key to `lib/services/filter_service.dart` (replace the placeholder)
+   - The DeepAR Android and iOS license keys are already configured in `lib/services/filter_service.dart`.
+   - If you need to use your own DeepAR project, get a license at https://developer.deepar.ai/ and replace the `androidLicenseKey` and `iosLicenseKey` values in `_configureDeepAR()`.
+
+## One-Time Manual Steps Required
+
+The following steps require actions outside the codebase and must be completed by the developer before building:
+
+1. **Set up Firebase credentials** (iOS + Android)
+
+   The credential files are excluded from version control. Use the setup script to create them:
+
+   ```bash
+   bash scripts/setup_firebase.sh
+   ```
+
+   Then download the real files from the [Firebase Console](https://console.firebase.google.com/):
+
+   | Platform | Firebase Console path | Drop file at |
+   |---|---|---|
+   | iOS | Project Settings → Your apps → iOS+ app → Download | `ios/Runner/GoogleService-Info.plist` |
+   | Android | Project Settings → Your apps → Android app → Download | `android/app/google-services.json` |
+
+   After placing the real files, verify there are no stale placeholder values:
+
+   ```bash
+   bash scripts/validate_firebase.sh
+   ```
+
+   **iOS extra step:** Open `ios/Runner.xcworkspace` in Xcode, select the **Runner** target, go to **Build Phases → Copy Bundle Resources**, and confirm `GoogleService-Info.plist` is listed.
+
+2. **Install dependencies** (must be run once on each machine)
+   ```bash
+   flutter pub get
+   cd ios && pod install && cd ..
+   ```
+
+3. **Configure Apple Developer Team in Xcode** (⚠️ not yet done)
+   - Open `ios/Runner.xcworkspace` in Xcode.
+   - Select the **Runner** target → **Signing & Capabilities** tab.
+   - Choose your Apple Developer Team from the drop-down. This is required to sign the app for a real device.
+
+4. **Enable "Sign In with Apple" in the Apple Developer Portal** (⚠️ not yet done)
+   - Go to [developer.apple.com](https://developer.apple.com/) → **Certificates, Identifiers & Profiles → Identifiers**.
+   - Select the app's bundle ID and enable the **Sign In with Apple** capability.
+   - Regenerate and download the provisioning profile, then install it in Xcode.
 
 ### Running the App
 
-1. Connect an Android device or start an emulator.
+**Android:**
 
+1. Connect an Android device or start an emulator.
 2. Run the app:
    ```bash
    flutter run
    ```
+
+**iOS (macOS required):**
+
+1. Ensure you have completed `flutter pub get` and `cd ios && pod install`.
+2. Connect an iOS device or start a simulator.
+3. Run the app:
+   ```bash
+   flutter run
+   ```
+   Alternatively, open `ios/Runner.xcworkspace` in Xcode and click **Run**.
 
 ### Building APK
 
@@ -83,6 +182,14 @@ flutter build apk
 ```
 
 The APK will be generated in `build/app/outputs/flutter-apk/app-release.apk`
+
+### Building iOS IPA (macOS required)
+
+```bash
+flutter build ipa
+```
+
+The IPA will be generated in `build/ios/ipa/`.
 
 ## Project Structure
 
@@ -112,6 +219,7 @@ The app is optimized for smooth 24-30 FPS video streaming and filter processing:
 - ✅ Modular code structure implemented
 - ✅ Agora SDK integration with performance optimizations
 - ✅ DeepAR filter processing with isolate-based background processing
+- ✅ DeepAR Android and iOS license keys configured
 - ✅ Performance monitoring and adaptive quality adjustments
 - ✅ Debug APK build completed
 - ✅ **Complete monetization system implemented:**
@@ -130,8 +238,9 @@ The app is optimized for smooth 24-30 FPS video streaming and filter processing:
 
 ## Next Steps for Full MVP
 
-- Add real Agora App ID and DeepAR license keys
-- Implement Firebase Firestore matchmaking
+- Replace `ios/Runner/GoogleService-Info.plist` and `android/app/google-services.json` with real files from Firebase Console (run `bash scripts/setup_firebase.sh` then `bash scripts/validate_firebase.sh`)
+- Configure Apple Developer Team and enable "Sign In with Apple" capability (see One-Time Manual Steps above)
+- ~~Implement Firebase Firestore matchmaking~~ ✅ Implemented: queue-based Firestore matchmaking with transactional claim, security rules, and composite indexes
 - **Set up in-app purchase products in App Store Connect and Google Play Console**
 - **Configure product IDs in the code**
 - Add safety features (report/block)

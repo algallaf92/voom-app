@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'screens/home_screen.dart';
 import 'widgets/buttons.dart';
 import 'constants.dart';
@@ -12,7 +13,9 @@ import 'screens/purchase_history_screen.dart';
 import 'screens/coin_store_screen.dart';
 import 'screens/video_chat_mock_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(const VoomApp());
 }
 
@@ -191,6 +194,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     _glowAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(_glowController);
 
     Future.delayed(const Duration(seconds: 3), () {
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
@@ -226,7 +230,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
                   decoration: BoxDecoration(
                     boxShadow: [
                       BoxShadow(
-                        color: primaryColor.withOpacity(_glowAnimation.value * 0.5),
+                        color: primaryColor.withValues(alpha: _glowAnimation.value * 0.5),
                         blurRadius: 20,
                         spreadRadius: 5,
                       ),
