@@ -41,6 +41,9 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
   bool _canSkip = true;
   bool _showRetryButton = false;
   String? _matchedUserId;
+  // Default preferences — updated when the user picks a specific value.
+  String? _selectedGender;
+  String? _selectedRegion;
 
   @override
   void initState() {
@@ -111,15 +114,19 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
     });
 
     try {
-      // Start matching process
-      final userId = await matchingService.findMatch(currentUserId: 'current_user_id');
+      // Start real Firestore matchmaking.
+      final result = await matchingService.findMatch(
+        genderPreference: _genderFilterEnabled ? _selectedGender : null,
+        regionPreference: _regionFilterEnabled ? _selectedRegion : null,
+        isPriority: _priorityMatchingEnabled,
+      );
 
-      if (userId != null && mounted) {
+      if (result != null && mounted) {
         // Cancel timeout timer since we found a match
         _timeoutTimer?.cancel();
 
         setState(() {
-          _matchedUserId = userId;
+          _matchedUserId = result.matchedUserId;
         });
 
         // Navigate to video chat after a brief success animation
@@ -127,7 +134,13 @@ class _MatchingScreenState extends State<MatchingScreen> with TickerProviderStat
           if (mounted) {
             Navigator.pushReplacement(
               context,
-              MaterialPageRoute(builder: (context) => const VideoChatScreen()),
+              MaterialPageRoute(
+                builder: (context) => VideoChatScreen(
+                  channelName: result.channelName,
+                  remoteUserId: result.matchedUserId,
+                  matchId: result.matchId,
+                ),
+              ),
             );
           }
         });

@@ -11,7 +11,16 @@ import '../services/filter_service.dart';
 import '../constants.dart';
 
 class VideoChatScreen extends StatefulWidget {
-  const VideoChatScreen({super.key});
+  final String channelName;
+  final String remoteUserId;
+  final String matchId;
+
+  const VideoChatScreen({
+    super.key,
+    required this.channelName,
+    required this.remoteUserId,
+    required this.matchId,
+  });
 
   @override
   _VideoChatScreenState createState() => _VideoChatScreenState();
@@ -26,8 +35,6 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
   bool _isInitialized = false;
   bool _premiumFiltersUnlocked = false;
   final bool _remoteCameraOn = true; // Track remote user's camera status
-  final String _remoteUserId = '';
-  final String _sessionId = 'session_${DateTime.now().millisecondsSinceEpoch}';
 
   String _currentFilter = 'None';
   Timer? _safetyTimer;
@@ -58,7 +65,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
       }
 
       final safetyService = SafetyProvider.of(context);
-      await safetyService.checkCameraStatus(_remoteCameraOn, _remoteUserId);
+      await safetyService.checkCameraStatus(_remoteCameraOn, widget.remoteUserId);
 
       // Auto-skip if camera is off and setting is enabled
       final settings = await safetyService.getSafetySettings();
@@ -135,7 +142,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
 
       // Join a test channel (replace with actual channel logic)
       await _agoraService.joinChannel(
-        'test_channel_${DateTime.now().millisecondsSinceEpoch}',
+        widget.channelName,
         '', // Token - use your token generation logic
         0,  // UID
       );
@@ -559,10 +566,10 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
         try {
           await safetyService.reportUser(
             reporterId: currentUid,
-            reportedUserId: _remoteUserId,
+            reportedUserId: widget.remoteUserId,
             reason: reason,
             description: description,
-            chatSessionId: _sessionId,
+            chatSessionId: widget.matchId,
           );
 
           ScaffoldMessenger.of(context).showSnackBar(
@@ -624,7 +631,7 @@ class _VideoChatScreenState extends State<VideoChatScreen> with WidgetsBindingOb
       try {
         await safetyService.blockUser(
           blockerId: currentUid,
-          blockedUserId: _remoteUserId,
+          blockedUserId: widget.remoteUserId,
           reason: 'User blocked during chat',
         );
 

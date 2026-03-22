@@ -63,7 +63,19 @@ A random video chat app similar to Azar, built with Flutter, Agora SDK, Firebase
 
 3. Set up Firebase:
    - Create a Firebase project at https://console.firebase.google.com/
-   - Enable Firestore and Authentication in the Firebase Console.
+   - Enable **Firestore** and **Authentication** (Email/Password + Google + Apple + Anonymous) in the Firebase Console.
+
+   **Deploy Firestore rules and indexes** (required for matchmaking to work):
+   ```bash
+   # Install the Firebase CLI if you haven't already
+   npm install -g firebase-tools
+   firebase login
+   firebase use --add   # select your project
+
+   # Deploy security rules and composite indexes
+   firebase deploy --only firestore
+   ```
+   The rules file (`firestore.rules`) and index file (`firestore.indexes.json`) are already in the repo root.
 
    The credential files (`ios/Runner/GoogleService-Info.plist` and `android/app/google-services.json`) are listed in `.gitignore` and **must never be committed**. Use the provided scripts to set them up:
 
@@ -228,7 +240,7 @@ The app is optimized for smooth 24-30 FPS video streaming and filter processing:
 
 - Replace `ios/Runner/GoogleService-Info.plist` and `android/app/google-services.json` with real files from Firebase Console (run `bash scripts/setup_firebase.sh` then `bash scripts/validate_firebase.sh`)
 - Configure Apple Developer Team and enable "Sign In with Apple" capability (see One-Time Manual Steps above)
-- Implement Firebase Firestore matchmaking
+- ~~Implement Firebase Firestore matchmaking~~ ✅ Implemented: queue-based Firestore matchmaking with transactional claim, security rules, and composite indexes
 - **Set up in-app purchase products in App Store Connect and Google Play Console**
 - **Configure product IDs in the code**
 - Add safety features (report/block)
